@@ -1,8 +1,60 @@
-# Getting Started with Create React App
+# Sistema de Gestión PQRS
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este proyecto es una aplicación web desarrollada en React para la gestión de PQRS (Peticiones, Quejas, Reclamos y Sugerencias). La aplicación se integra con una API REST desarrollada en Laravel para el manejo de datos y autenticación.
 
-## Available Scripts
+## Requisitos Previos
+
+- Node.js (v14 o superior)
+- npm o yarn
+- API REST Laravel corriendo en localhost:8000
+
+## Instalación
+
+1. Clonar el repositorio:
+\```bash
+git clone [url-del-repositorio]
+cd api_pqrs
+\```
+
+2. Instalar dependencias:
+\```bash
+npm install
+# o
+yarn install
+\```
+
+3. Crear archivo de variables de entorno:
+- Copiar el archivo `.env.example` a `.env`
+- Configurar las variables de entorno necesarias:
+\```env
+REACT_APP_URL_API=http://localhost:8000/api/
+\```
+
+## Configuración
+
+El proyecto utiliza las siguientes tecnologías y librerías principales:
+
+- React
+- React Router DOM para la navegación
+- Formik para manejo de formularios
+- Yup para validación de formularios
+- Reactstrap para componentes de UI
+- Redux para manejo del estado (store)
+
+## Estructura del Proyecto
+
+\```
+src/
+  ├── assets/         # Recursos estáticos (imágenes, estilos)
+  ├── components/     # Componentes reutilizables
+  ├── layouts/        # Layouts de la aplicación
+  ├── views/          # Vistas/páginas de la aplicación
+  ├── routes/         # Configuración de rutas
+  ├── store/          # Estado global (Redux)
+  └── data/          # Datos mock y configuraciones
+\```
+
+## Scripts Disponibles
 
 In the project directory, you can run:
 
@@ -65,6 +117,32 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/a
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### `npm run build` fails to minify
+## Autenticación
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+La aplicación utiliza autenticación basada en tokens JWT:
+
+- Endpoint de login: `${API_URL}/login`
+- Credenciales de prueba:
+  - Email: admin@example.com
+  - Password: 123456789
+
+## Características Principales
+
+- Sistema de autenticación con JWT
+- Dashboard interactivo
+- Gestión de PQRS
+- Interfaz responsive
+- Tema claro/oscuro
+- Múltiples layouts disponibles
+
+## Contribución
+
+1. Fork el proyecto
+2. Crea tu rama de características (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo LICENSE.md para más detalles.
