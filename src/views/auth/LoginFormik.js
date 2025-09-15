@@ -10,6 +10,8 @@ import { ReactComponent as RightBg } from '../../assets/images/bg/login-bg-right
 const LoginFormik = () => {
   const navigate = useNavigate();
 
+  const [error, setError] = React.useState('');
+
   const initialValues = {
     email: '',
     password: '',
@@ -39,15 +41,41 @@ const LoginFormik = () => {
                 <Formik
                   initialValues={initialValues}
                   validationSchema={validationSchema}
-                  onSubmit={(fields) => {
-                    // eslint-disable-next-line no-alert
-                    alert(`SUCCESS!! :-)\n\n${JSON.stringify(fields, null, 4)}`);
-                    navigate('/');
+                  onSubmit={async (fields, { setSubmitting }) => {
+                    try {
+                      setError('');
+                      const response = await fetch(`${process.env.REACT_APP_URL_API}login`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          email: fields.email,
+                          password: fields.password,
+                        }),
+                      });
+
+                      const data = await response.json();
+
+                      if (response.ok) {
+                        // Store the token and user data in localStorage
+                        localStorage.setItem('token', data.access_token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        // Redirect to dashboard
+                        navigate('/dashboards/minimal');
+                      } else {
+                        setError('Usuario y contraseña no válidos');
+                      }
+                    } catch (err) {
+                      setError('An error occurred. Please try again.');
+                    } finally {
+                      setSubmitting(false);
+                    }
                   }}
                   render={({ errors, touched }) => (
                     <Form>
                       <FormGroup>
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">Usuario</Label>
                         <Field
                           name="email"
                           type="text"
@@ -58,7 +86,7 @@ const LoginFormik = () => {
                         <ErrorMessage name="email" component="div" className="invalid-feedback" />
                       </FormGroup>
                       <FormGroup>
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Contraseña</Label>
                         <Field
                           name="password"
                           type="password"
@@ -81,6 +109,11 @@ const LoginFormik = () => {
                           <small>Forgot Pwd?</small>
                         </Link>
                       </FormGroup>
+                      {error && (
+                        <div className="alert alert-danger" role="alert">
+                          {error}
+                        </div>
+                      )}
                       <FormGroup>
                         <Button type="submit" color="primary" className="me-2">
                           Login
