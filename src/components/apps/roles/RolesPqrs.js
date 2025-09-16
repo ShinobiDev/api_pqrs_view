@@ -8,20 +8,51 @@ import {
   Alert
 } from 'reactstrap';
 import DataTable from 'react-data-table-component';
-import EditStateModal from './EditStateModal';
-import CreateStateModal from './CreateStateModal';
+import EditRoleModal from './EditRoleModal';
+import CreateRoleModal from './CreateRoleModal';
 
-const StatesPqrs = () => {
-  const [states, setStates] = useState([]);
+const RolesPqrs = () => {
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedState, setSelectedState] = useState(null);
-  const [editFormData, setEditFormData] = useState({ name: '' });
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [filterText, setFilterText] = useState('');
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
+
+  const fetchRoles = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_URL_API}roles`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setRoles(data);
+      setError(null);
+    } catch (err) {
+      setError(`Error fetching roles: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleClear = () => {
     setFilterText('');
@@ -51,39 +82,9 @@ const StatesPqrs = () => {
     },
   };
 
-
-
-  const fetchStates = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setError('No authentication token found. Please login again.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setStates(data);
-      setError(null);
-    } catch (err) {
-      setError(`Error fetching states: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const toggleCreateModal = () => {
     setCreateModalOpen(!createModalOpen);
@@ -93,7 +94,7 @@ const StatesPqrs = () => {
   const handleCreateSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses`, {
+      const response = await fetch(`${process.env.REACT_APP_URL_API}roles`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,68 +108,25 @@ const StatesPqrs = () => {
       }
 
       const responseData = await response.json();
-      setSuccessMessage(`Estado "${responseData.name}" creado exitosamente`);
+      setSuccessMessage(`Rol "${responseData.name}" creado exitosamente`);
       toggleCreateModal();
-      fetchStates();
+      fetchRoles();
     } catch (err) {
-      setError(`Error creating state: ${err.message}`);
+      setError(`Error creating role: ${err.message}`);
     }
   };
 
-  useEffect(() => {
-    fetchStates();
-  }, [fetchStates]);
-
-  const toggleModal = () => {
-    setModalOpen(!modalOpen);
-    if (modalOpen) {
-      // Solo limpiamos los datos cuando se cierra el modal
-      setEditFormData({ name: '' });
-      setSelectedState(null);
-      setError(null);
-    }
-  };
-
-  const handleEdit = (state) => {
-    setSelectedState(state);
-    setEditFormData({ name: state.name });
-    toggleModal();
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses/${selectedState.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: selectedState.id,
-          name: editFormData.name
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setSuccessMessage(data.message);
-      toggleModal();
-      fetchStates();
-    } catch (err) {
-      setError(`Error updating state: ${err.message}`);
-    }
+  const handleEdit = (role) => {
+    setSelectedRole(role);
+    setEditModalOpen(true);
+    setError(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este estado?')) {
+    if (window.confirm('¿Está seguro que desea eliminar este rol?')) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${process.env.REACT_APP_URL_API}statuses/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_URL_API}roles/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -180,11 +138,10 @@ const StatesPqrs = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        setSuccessMessage(data.message);
-        fetchStates();
+        setSuccessMessage('Rol eliminado exitosamente');
+        fetchRoles();
       } catch (err) {
-        setError(`Error deleting state: ${err.message}`);
+        setError(`Error deleting role: ${err.message}`);
       }
     }
   };
@@ -201,7 +158,7 @@ const StatesPqrs = () => {
     <Card>
       <CardBody>
         <div className="d-flex justify-content-between align-items-center">
-          <CardTitle tag="h4">Estados PQRS</CardTitle>
+          <CardTitle tag="h4">Roles PQRS</CardTitle>
           <Button color="primary" onClick={toggleCreateModal}>
             Crear Nuevo
           </Button>
@@ -249,6 +206,12 @@ const StatesPqrs = () => {
               grow: 2
             },
             {
+              name: 'Descripción',
+              selector: row => row.description,
+              sortable: true,
+              grow: 2
+            },
+            {
               name: 'Fecha Creación',
               selector: row => row.created_at,
               sortable: true,
@@ -284,7 +247,7 @@ const StatesPqrs = () => {
               width: '200px'
             }
           ]}
-          data={states.filter(
+          data={roles.filter(
             item => item.name.toLowerCase().includes(filterText.toLowerCase())
           )}
           pagination
@@ -298,15 +261,37 @@ const StatesPqrs = () => {
           noDataComponent={<div className="p-4">No hay registros para mostrar</div>}
         />
 
-        <EditStateModal
-          isOpen={modalOpen}
-          toggle={toggleModal}
-          formData={editFormData}
-          onFormChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-          onSubmit={handleSubmitEdit}
+        <EditRoleModal
+          isOpen={editModalOpen}
+          toggle={() => setEditModalOpen(!editModalOpen)}
+          role={selectedRole}
+          onSubmit={async (formData) => {
+            try {
+              const token = localStorage.getItem('token');
+              const response = await fetch(`${process.env.REACT_APP_URL_API}roles/${selectedRole.id}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const responseData = await response.json();
+              setSuccessMessage(`Rol "${responseData.name}" actualizado exitosamente`);
+              setEditModalOpen(false);
+              fetchRoles();
+            } catch (err) {
+              setError(`Error updating role: ${err.message}`);
+            }
+          }}
         />
 
-        <CreateStateModal
+        <CreateRoleModal
           isOpen={createModalOpen}
           toggle={toggleCreateModal}
           onSubmit={handleCreateSubmit}
@@ -316,4 +301,4 @@ const StatesPqrs = () => {
   );
 };
 
-export default StatesPqrs;
+export default RolesPqrs;

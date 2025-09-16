@@ -8,20 +8,51 @@ import {
   Alert
 } from 'reactstrap';
 import DataTable from 'react-data-table-component';
-import EditStateModal from './EditStateModal';
-import CreateStateModal from './CreateStateModal';
+import EditTypeModal from './EditTypeModal';
+import CreateTypeModal from './CreateTypeModal';
 
-const StatesPqrs = () => {
-  const [states, setStates] = useState([]);
+const TypesPqrs = () => {
+  const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedState, setSelectedState] = useState(null);
-  const [editFormData, setEditFormData] = useState({ name: '' });
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [filterText, setFilterText] = useState('');
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
+
+  const fetchTypes = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_URL_API}types`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setTypes(data);
+      setError(null);
+    } catch (err) {
+      setError(`Error fetching types: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleClear = () => {
     setFilterText('');
@@ -51,39 +82,9 @@ const StatesPqrs = () => {
     },
   };
 
-
-
-  const fetchStates = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setError('No authentication token found. Please login again.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setStates(data);
-      setError(null);
-    } catch (err) {
-      setError(`Error fetching states: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  useEffect(() => {
+    fetchTypes();
+  }, [fetchTypes]);
 
   const toggleCreateModal = () => {
     setCreateModalOpen(!createModalOpen);
@@ -93,7 +94,7 @@ const StatesPqrs = () => {
   const handleCreateSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses`, {
+      const response = await fetch(`${process.env.REACT_APP_URL_API}types`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,68 +108,25 @@ const StatesPqrs = () => {
       }
 
       const responseData = await response.json();
-      setSuccessMessage(`Estado "${responseData.name}" creado exitosamente`);
+      setSuccessMessage(`Tipo "${responseData.name}" creado exitosamente`);
       toggleCreateModal();
-      fetchStates();
+      fetchTypes();
     } catch (err) {
-      setError(`Error creating state: ${err.message}`);
+      setError(`Error creating type: ${err.message}`);
     }
   };
 
-  useEffect(() => {
-    fetchStates();
-  }, [fetchStates]);
-
-  const toggleModal = () => {
-    setModalOpen(!modalOpen);
-    if (modalOpen) {
-      // Solo limpiamos los datos cuando se cierra el modal
-      setEditFormData({ name: '' });
-      setSelectedState(null);
-      setError(null);
-    }
-  };
-
-  const handleEdit = (state) => {
-    setSelectedState(state);
-    setEditFormData({ name: state.name });
-    toggleModal();
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_URL_API}statuses/${selectedState.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: selectedState.id,
-          name: editFormData.name
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setSuccessMessage(data.message);
-      toggleModal();
-      fetchStates();
-    } catch (err) {
-      setError(`Error updating state: ${err.message}`);
-    }
+  const handleEdit = (type) => {
+    setSelectedType(type);
+    setEditModalOpen(true);
+    setError(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este estado?')) {
+    if (window.confirm('¿Está seguro que desea eliminar este tipo?')) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${process.env.REACT_APP_URL_API}statuses/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_URL_API}types/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -180,11 +138,10 @@ const StatesPqrs = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        setSuccessMessage(data.message);
-        fetchStates();
+        setSuccessMessage('Tipo eliminado exitosamente');
+        fetchTypes();
       } catch (err) {
-        setError(`Error deleting state: ${err.message}`);
+        setError(`Error deleting type: ${err.message}`);
       }
     }
   };
@@ -201,7 +158,7 @@ const StatesPqrs = () => {
     <Card>
       <CardBody>
         <div className="d-flex justify-content-between align-items-center">
-          <CardTitle tag="h4">Estados PQRS</CardTitle>
+          <CardTitle tag="h4">Tipos PQRS</CardTitle>
           <Button color="primary" onClick={toggleCreateModal}>
             Crear Nuevo
           </Button>
@@ -284,7 +241,7 @@ const StatesPqrs = () => {
               width: '200px'
             }
           ]}
-          data={states.filter(
+          data={types.filter(
             item => item.name.toLowerCase().includes(filterText.toLowerCase())
           )}
           pagination
@@ -298,15 +255,37 @@ const StatesPqrs = () => {
           noDataComponent={<div className="p-4">No hay registros para mostrar</div>}
         />
 
-        <EditStateModal
-          isOpen={modalOpen}
-          toggle={toggleModal}
-          formData={editFormData}
-          onFormChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-          onSubmit={handleSubmitEdit}
+        <EditTypeModal
+          isOpen={editModalOpen}
+          toggle={() => setEditModalOpen(!editModalOpen)}
+          type={selectedType}
+          onSubmit={async (formData) => {
+            try {
+              const token = localStorage.getItem('token');
+              const response = await fetch(`${process.env.REACT_APP_URL_API}types/${selectedType.id}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const responseData = await response.json();
+              setSuccessMessage(`Tipo "${responseData.name}" actualizado exitosamente`);
+              setEditModalOpen(false);
+              fetchTypes();
+            } catch (err) {
+              setError(`Error updating type: ${err.message}`);
+            }
+          }}
         />
 
-        <CreateStateModal
+        <CreateTypeModal
           isOpen={createModalOpen}
           toggle={toggleCreateModal}
           onSubmit={handleCreateSubmit}
@@ -316,4 +295,4 @@ const StatesPqrs = () => {
   );
 };
 
-export default StatesPqrs;
+export default TypesPqrs;

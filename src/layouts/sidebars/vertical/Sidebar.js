@@ -22,6 +22,18 @@ import user1 from '../../../assets/images/users/user4.jpg';
 const Sidebar = () => {
   const location = useLocation();
   const currentURL = location.pathname.split('/').slice(0, -1).join('/');
+  const [userName, setUserName] = React.useState('Usuario');
+
+  React.useEffect(() => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData && userData.name) {
+        setUserName(userData.name);
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+  }, []);
 
   //const [collapsed, setCollapsed] = useState(null);
   // const toggle = (index) => {
@@ -50,7 +62,7 @@ const Sidebar = () => {
           <img src={user1} alt="John Deo" width={60} className="rounded-circle mb-2" />
           <UncontrolledDropdown>
             <DropdownToggle caret className="bg-transparent border-0">
-              John Deo
+              {userName}
             </DropdownToggle>
             <DropdownMenu className='w-100 border'>
               <DropdownItem className="px-4 py-3">

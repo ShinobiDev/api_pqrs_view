@@ -49,6 +49,20 @@ const SidebarData = [
     id: 2.1,
     collapisble: false,
   },
+  {
+    title: 'Tipos',
+    href: '/apps/types',
+    icon: <Icon.FileText />,
+    id: 2.2,
+    collapisble: false,
+  },
+  {
+    title: 'Roles',
+    href: '/apps/roles',
+    icon: <Icon.Users />,
+    id: 2.3,
+    collapisble: false,
+  },
   // {
   //   title: 'Notes',
   //   href: '/apps/notes',
@@ -56,13 +70,13 @@ const SidebarData = [
   //   id: 2.1,
   //   collapisble: false,
   // },
-  {
-    title: 'Chat',
-    href: '/apps/chat',
-    icon: <Icon.MessageCircle />,
-    id: 2.2,
-    collapisble: false,
-  },
+  // {
+  //   title: 'Chat',
+  //   href: '/apps/chat',
+  //   icon: <Icon.MessageCircle />,
+  //   id: 2.2,
+  //   collapisble: false,
+  // },
   {
     title: 'Contacts',
     href: '/apps/contacts',
