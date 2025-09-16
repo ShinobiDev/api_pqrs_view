@@ -136,7 +136,7 @@ const HorizontalHeader = () => {
 
             <div className="p-2 px-3">
               <Button color="danger" size="sm">
-                Logout
+                Salir
               </Button>
             </div>
           </DropdownMenu>

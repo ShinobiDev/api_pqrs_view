@@ -1,5 +1,5 @@
 import React from 'react';
-// import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import SimpleBar from 'simplebar-react';
 import {
@@ -28,6 +28,26 @@ const Header = () => {
   const isDarkMode = useSelector((state) => state.customizer.isDark);
   const topbarColor = useSelector((state) => state.customizer.topbarBg);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Limpiar el token de autenticación
+    localStorage.removeItem('token');
+    
+    // Limpiar cualquier otro dato de sesión que pueda existir
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // Limpiar las cookies si hay alguna
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+    });
+
+    // Redireccionar al login
+    navigate('/auth/loginformik');
+  };
 
   return (
     <Navbar
@@ -145,8 +165,8 @@ const Header = () => {
           <DropdownMenu className="ddWidth">
             <ProfileDD />
             <div className="p-2 px-3">
-              <Button color="danger" size="sm">
-                Logout
+              <Button color="danger" size="sm" block onClick={handleLogout}>
+                Cerrar sesión
               </Button>
             </div>
           </DropdownMenu>
