@@ -44,35 +44,10 @@ const ClientFilter = () => {
           className={active === 'starred_client' ? 'bg-light py-3 border-0' : 'py-3 border-0'}
           onClick={() => dispatch(setVisibilityFilter('starred_client'))}
         >
-          <i className="bi bi-star mx-1" /> Starred
-        </ListGroupItem>
-        <div className="border-bottom py-2 mb-2" />
-        <h6 className="px-3 pt-3">Filter By Type</h6>
-        <ListGroupItem
-          href="#"
-          tag="a"
-          className={active === 'regular_client' ? 'bg-light py-3 border-0' : 'py-3 border-0'}
-          onClick={() => dispatch(setVisibilityFilter('regular_client'))}
-        >
-          <i className="bi bi-bookmark-star mx-1" /> Regular
-        </ListGroupItem>
-        <ListGroupItem
-          href="#"
-          tag="a"
-          className={active === 'vip_client' ? 'bg-light py-3 border-0' : 'py-3 border-0'}
-          onClick={() => dispatch(setVisibilityFilter('vip_client'))}
-        >
-          <i className="bi bi-bookmark-star mx-1" /> VIP
-        </ListGroupItem>
-        <ListGroupItem
-          href="#"
-          tag="a"
-          className={active === 'corporate_client' ? 'bg-light py-3 border-0' : 'py-3 border-0'}
-          onClick={() => dispatch(setVisibilityFilter('corporate_client'))}
-        >
-          <i className="bi bi-bookmark-star mx-1" /> Corporate
+          <i className="bi bi-star mx-1" /> Todos
         </ListGroupItem>
       </ListGroup>
+      
       {/***********Client Add Box**************/}
       <Modal isOpen={modal} toggle={toggle} size="md">
         <ModalHeader toggle={toggle}>Nuevo cliente</ModalHeader>
