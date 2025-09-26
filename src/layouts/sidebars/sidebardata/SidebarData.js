@@ -1,7 +1,6 @@
 import * as Icon from 'react-feather';
 
 const SidebarData = [
-  // { caption: 'Personal' },
   // {
   //   title: 'Dashboards',
   //   href: '/dashboards',
@@ -78,40 +77,47 @@ const SidebarData = [
   //   collapisble: false,
   // },
   {
-    title: 'Contacts',
-    href: '/apps/contacts',
+    title: 'Clientes',
+    href: '/apps/clients',
     icon: <Icon.User />,
-    id: 2.3,
-    collapisble: false,
-  },
-  {
-    title: 'Calendar',
-    href: '/apps/calendar',
-    icon: <Icon.Calendar />,
     id: 2.4,
     collapisble: false,
   },
+  {
+    title: 'Contacts',
+    href: '/apps/contacts',
+    icon: <Icon.User />,
+    id: 2.5,
+    collapisble: false,
+  },
+  // {
+  //   title: 'Calendar',
+  //   href: '/apps/calendar',
+  //   icon: <Icon.Calendar />,
+  //   id: 2.5,
+  //   collapisble: false,
+  // },
   {
     title: 'Email',
     href: '/apps/email',
     icon: <Icon.Mail />,
     suffix: 'New',
     suffixColor: 'bg-primary rounded-pill text-dark-white',
-    id: 2.5,
+    id: 2.6,
     collapisble: false,
   },
   {
     title: 'CASL',
     href: '/casl',
     icon: <Icon.UserCheck />,
-    id: 2.6,
+    id: 2.7,
     collapisble: false,
   },
   {
     title: 'Ecommerce',
     href: '/ecom',
     icon: <Icon.ShoppingCart />,
-    id: 2.7,
+    id: 2.8,
     collapisble: true,
     children: [
       {
@@ -130,7 +136,7 @@ const SidebarData = [
     title: 'Ticket',
     href: '/tickt',
     icon: <Icon.Bookmark />,
-    id: 2.8,
+    id: 2.9,
     collapisble: true,
     children: [
       {
@@ -145,13 +151,13 @@ const SidebarData = [
       },
     ],
   },
-  {
-    title: 'TreeView',
-    href: '/apps/treeview',
-    icon: <Icon.Triangle />,
-    id: 2.9,
-    collapisble: false,
-  },
+  // {
+  //   title: 'TreeView',
+  //   href: '/apps/treeview',
+  //   icon: <Icon.Triangle />,
+  //   id: 2.9,
+  //   collapisble: false,
+  // },
   { caption: 'UI' },
   {
     title: 'UI Elements',

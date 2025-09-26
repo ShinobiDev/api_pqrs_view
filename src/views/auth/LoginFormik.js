@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Label, FormGroup, Container, Row, Col, Card, CardBody, Input } from 'reactstrap';
+import { Button, Label, FormGroup, Container, Row, Col, Card, CardBody, Input, Spinner } from 'reactstrap';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ const LoginFormik = () => {
   const navigate = useNavigate();
 
   const [error, setError] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const initialValues = {
     email: '',
@@ -44,10 +45,12 @@ const LoginFormik = () => {
                   onSubmit={async (fields, { setSubmitting }) => {
                     try {
                       setError('');
+                      setIsLoading(true);
                       const response = await fetch(`${process.env.REACT_APP_URL_API}login`, {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
+                          'Accept': 'application/json'
                         },
                         body: JSON.stringify({
                           email: fields.email,
@@ -70,6 +73,7 @@ const LoginFormik = () => {
                       setError('An error occurred. Please try again.');
                     } finally {
                       setSubmitting(false);
+                      setIsLoading(false);
                     }
                   }}
                   render={({ errors, touched }) => (
@@ -115,8 +119,22 @@ const LoginFormik = () => {
                         </div>
                       )}
                       <FormGroup>
-                        <Button type="submit" color="primary" className="me-2">
-                          Login
+                        <Button 
+                          type="submit" 
+                          color="primary" 
+                          className="me-2 d-flex align-items-center justify-content-center w-100" 
+                          disabled={isLoading || !!errors.email || !!errors.password}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Spinner size="sm" className="me-2">
+                                Loading...
+                              </Spinner>
+                              Iniciando sesión...
+                            </>
+                          ) : (
+                            'Login'
+                          )}
                         </Button>
                       </FormGroup>
                     </Form>

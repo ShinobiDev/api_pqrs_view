@@ -1,248 +1,296 @@
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Button, Input } from 'reactstrap';
-import { isEdit, UpdateContact } from '../../../store/apps/contacts/ContactSlice';
+import React, { useState, useEffect } from 'react';
+import { Button, Input, Spinner, Alert } from 'reactstrap';
+import PropTypes from 'prop-types';
 
-const ContactDetails = () => {
-  const contactDetail = useSelector(
-    (state) => state.contactsReducer.contacts[state.contactsReducer.contactContent - 1],
-  );
+const ContactDetails = ({ selectedUserId }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState(null);
 
-  const editContact = useSelector((state) => state.contactsReducer.editContact);
-  const dispatch = useDispatch();
+  // Cargar los detalles del usuario cuando cambia la selección
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!selectedUserId) {
+        setUser(null);
+        setError('No se ha seleccionado ningún usuario');
+        return;
+      }
+      
+      // Validar que el ID sea un número válido
+      if (!Number.isInteger(selectedUserId) || selectedUserId <= 0) {
+        setError('ID de usuario inválido');
+        setUser(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
+        const apiUrl = `${process.env.REACT_APP_URL_API}users/${selectedUserId}`;
+        console.log('Intentando obtener usuario de:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          let errorMessage;
+          try {
+            const errorBody = await response.json();
+            errorMessage = errorBody.message || response.statusText;
+          } catch {
+            errorMessage = response.statusText;
+          }
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        if (!data || !data.id) {
+          throw new Error('Respuesta inválida del servidor');
+        }
+        
+        // Procesar los datos recibidos
+        const processedUser = {
+          ...data,
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          document: data.document || '',
+          role: data.role || null,
+          document_type: data.document_type || null,
+          status: data.status || null
+        };
+        
+        setUser(processedUser);
+        setEditedUser(processedUser);
+        setError(null);
+      } catch (err) {
+        console.error('Error al cargar usuario:', err);
+        setError(err.message);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [selectedUserId]);
+
+  const handleUpdateUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_URL_API}users/${selectedUserId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editedUser)
+      });
+
+      if (!response.ok) throw new Error('Error al actualizar el usuario');
+      
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setIsEditing(false);
+    } catch (errorActualizar) {
+      console.error('Error al actualizar:', errorActualizar);
+      setError(`Error al actualizar usuario: ${errorActualizar.message}`);
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditedUser(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
-    <>
-      {contactDetail ? (
+    <div className="h-100 p-4">
+      {error && (
+        <Alert color="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
+      
+      {loading ? (
+        <div className="text-center">
+          <Spinner color="primary" />
+        </div>
+      ) : !user ? (
+        <div className="text-center text-muted">
+          <i className="bi bi-person-circle" style={{ fontSize: '3rem' }}></i>
+          <p className="mt-2">Por favor, seleccione un usuario</p>
+        </div>
+      ) : (
         <div>
-          {/***********Contact Topbar**************/}
           <div className="d-flex align-items-center p-3 border-bottom">
-            <div className="">
-              <img src={contactDetail.image} alt="user" className="rounded-circle" width="46" />
+            <div className="rounded-circle d-flex align-items-center justify-content-center"
+              style={{
+                width: '46px',
+                height: '46px',
+                backgroundColor: '#f8f9fa'
+              }}>
+              {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="mx-2">
-              <h5 className="mb-0">
-                {contactDetail.firstname} {contactDetail.lastname}
-              </h5>
-              <small>{contactDetail.department}</small>
+              <h5 className="mb-0">{user.name}</h5>
+              <small>{user.role?.name}</small>
             </div>
           </div>
 
-          {/***********Contact Edit box**************/}
           <div className="p-4">
-            {!editContact ? (
+            {!isEditing ? (
               <table className="table table-borderless">
                 <tbody>
                   <tr>
                     <td width="150">
-                      <h6>Firstname </h6>
+                      <h6>Nombre</h6>
                     </td>
-                    <td>: {contactDetail.firstname}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <h6>Lastname</h6>
-                    </td>
-                    <td>: {contactDetail.lastname}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <h6>Company</h6>
-                    </td>
-                    <td>: {contactDetail.company}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <h6>Department</h6>
-                    </td>
-                    <td>: {contactDetail.department}</td>
+                    <td>: {user.name}</td>
                   </tr>
                   <tr>
                     <td>
                       <h6>Email</h6>
                     </td>
-                    <td>: {contactDetail.email}</td>
+                    <td>: {user.email}</td>
                   </tr>
                   <tr>
                     <td>
-                      <h6>Phone</h6>
+                      <h6>Teléfono</h6>
                     </td>
-                    <td>: {contactDetail.phone}</td>
+                    <td>: {user.phone}</td>
                   </tr>
                   <tr>
                     <td>
-                      <h6>Address</h6>
+                      <h6>Rol</h6>
                     </td>
-                    <td>: {contactDetail.address}</td>
+                    <td>: {user.role?.name}</td>
                   </tr>
                   <tr>
                     <td>
-                      <h6>Note</h6>
+                      <h6>Tipo Documento</h6>
                     </td>
-                    <td>: {contactDetail.notes}</td>
+                    <td>: {user.document_type?.name}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <h6>Documento</h6>
+                    </td>
+                    <td>: {user.document}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <h6>Estado</h6>
+                    </td>
+                    <td>
+                      <span className={`badge ${user.status?.name === 'Activo' ? 'bg-success' : 'bg-danger'}`}>
+                        {user.status?.name}
+                      </span>
+                    </td>
                   </tr>
                   <tr>
                     <td />
                     <td>
-                      <Button color="primary" onClick={() => dispatch(isEdit())}>
-                        Edit Contact
+                      <Button color="primary" onClick={() => setIsEditing(true)}>
+                        Editar Usuario
                       </Button>
                     </td>
                   </tr>
                 </tbody>
               </table>
             ) : (
-              <>
-                {/***********Contact form box**************/}
-                <table className="table table-borderless align-middle">
-                  <tbody>
-                    <tr>
-                      <td width="150">
-                        <h6>Firstname </h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="firstName"
-                          id="firstName"
-                          value={contactDetail.firstname}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'firstname', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Lastname</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="lastname"
-                          id="lastname"
-                          value={contactDetail.lastname}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'lastname', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Company</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="company"
-                          id="company"
-                          value={contactDetail.company}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'company', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Department</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="department"
-                          id="department"
-                          value={contactDetail.department}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'department', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Email</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="email"
-                          name="email"
-                          id="email"
-                          value={contactDetail.email}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'email', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Phone</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="phone"
-                          id="phone"
-                          value={contactDetail.phone}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'phone', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Address</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="address"
-                          id="address"
-                          value={contactDetail.address}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'address', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <h6>Note</h6>
-                      </td>
-                      <td>
-                        <Input
-                          type="text"
-                          name="notes"
-                          id="notes"
-                          value={contactDetail.notes}
-                          onChange={(e) =>
-                            dispatch(UpdateContact(contactDetail.id, 'notes', e.target.value))
-                          }
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td />
-                      <td>
-                        <Button color="success" onClick={() => dispatch(isEdit())}>
-                          Save Contact
-                        </Button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
+              <table className="table table-borderless align-middle">
+                <tbody>
+                  <tr>
+                    <td width="150">
+                      <h6>Nombre</h6>
+                    </td>
+                    <td>
+                      <Input
+                        type="text"
+                        name="name"
+                        value={editedUser.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <h6>Email</h6>
+                    </td>
+                    <td>
+                      <Input
+                        type="email"
+                        name="email"
+                        value={editedUser.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <h6>Teléfono</h6>
+                    </td>
+                    <td>
+                      <Input
+                        type="text"
+                        name="phone"
+                        value={editedUser.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <h6>Documento</h6>
+                    </td>
+                    <td>
+                      <Input
+                        type="text"
+                        name="document"
+                        value={editedUser.document}
+                        onChange={(e) => handleInputChange('document', e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td />
+                    <td>
+                      <Button color="success" className="me-2" onClick={handleUpdateUser}>
+                        Guardar
+                      </Button>
+                      <Button color="secondary" onClick={() => {
+                        setIsEditing(false);
+                        setEditedUser(user);
+                      }}>
+                        Cancelar
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             )}
           </div>
         </div>
-      ) : (
-        'Please Select The contact'
       )}
-    </>
+    </div>
   );
+};
+
+ContactDetails.propTypes = {
+  selectedUserId: PropTypes.number
 };
 
 export default ContactDetails;

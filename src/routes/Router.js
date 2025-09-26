@@ -19,6 +19,7 @@ const RolesPqrs = Loadable(lazy(() => import('../components/apps/roles/RolesPqrs
 const Notes = Loadable(lazy(() => import('../views/apps/notes/Notes')));
 const Chat = Loadable(lazy(() => import('../views/apps/chat/Chat')));
 const Contacts = Loadable(lazy(() => import('../views/apps/contacts/Contacts')));
+const Clients = Loadable(lazy(() => import('../views/apps/clients/Clients')));
 const Calendar = Loadable(lazy(() => import('../views/apps/calendar/CalendarApp')));
 const Email = Loadable(lazy(() => import('../views/apps/email/Email')));
 const Shop = Loadable(lazy(() => import('../views/apps/ecommerce/Shop')));
@@ -120,6 +121,7 @@ const ThemeRoutes = [
       { path: '/apps/notes', name: 'notes', exact: true, element: <Notes /> },
       { path: '/apps/chat', name: 'chat', exact: true, element: <Chat /> },
       { path: '/apps/contacts', name: 'contacts', exact: true, element: <Contacts /> },
+      { path: '/apps/clients', name: 'clients', exact: true, element: <Clients /> },
       { path: '/apps/calendar', name: 'calendar', exact: true, element: <Calendar /> },
       { path: '/apps/email', name: 'email', exact: true, element: <Email /> },
       { path: '/ecom/shop', name: 'email', exact: true, element: <Shop /> },
