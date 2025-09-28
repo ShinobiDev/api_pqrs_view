@@ -227,11 +227,91 @@ const ClientFilter = () => {
     fetchAllClients();
   };
 
+  // Función para exportar clientes a Excel
+  const exportClientsToExcel = async () => {
+    setLoading(true);
+    dispatch(ClientActions.setError(null));
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token de autenticación no encontrado');
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_URL_API}users/clients/export`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      // Obtener el blob del archivo Excel
+      const blob = await response.blob();
+      
+      // Crear un enlace temporal para descargar el archivo
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Obtener el nombre del archivo desde el header Content-Disposition o usar uno por defecto
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'clientes_export.xlsx';
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          const [, extractedFilename] = filenameMatch;
+          filename = extractedFilename;
+        }
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Limpiar
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Archivo Excel descargado exitosamente:', filename);
+      
+    } catch (err) {
+      console.error('Error exporting clients to Excel:', err);
+      dispatch(ClientActions.setError(`Error al exportar clientes: ${err.message}`));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="p-3 border-bottom">
-        <Button color="danger" block onClick={toggle}>
+        <Button color="danger" block onClick={toggle} className="mb-2">
           Crear nuevo cliente
+        </Button>
+        <Button 
+          color="success" 
+          block 
+          onClick={exportClientsToExcel}
+          disabled={loading}
+          className="d-flex align-items-center justify-content-center"
+        >
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Exportando...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-file-earmark-excel me-2"></i>
+              Exportar a Excel
+            </>
+          )}
         </Button>
       </div>
       
