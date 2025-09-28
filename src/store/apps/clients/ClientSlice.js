@@ -2,6 +2,10 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   clients: [],
+  activeClients: [],
+  inactiveClients: [],
+  deletedClients: [],
+  allClients: [],
   currentFilter: 'show_all',
   clientContent: 1,
   editClient: false,
@@ -40,13 +44,33 @@ export const ClientSlice = createSlice({
       }
     },
     setClients: (state, action) => {
-      state.clients = action.payload;
+      state.clients = Array.isArray(action.payload) ? action.payload : [];
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
     },
     setError: (state, action) => {
       state.error = action.payload;
+    },
+    setActiveClients: (state, action) => {
+      const clients = Array.isArray(action.payload) ? action.payload : [];
+      state.activeClients = clients;
+      state.clients = clients; // También actualizar la lista principal
+    },
+    setInactiveClients: (state, action) => {
+      const clients = Array.isArray(action.payload) ? action.payload : [];
+      state.inactiveClients = clients;
+      state.clients = clients; // También actualizar la lista principal
+    },
+    setDeletedClients: (state, action) => {
+      const clients = Array.isArray(action.payload) ? action.payload : [];
+      state.deletedClients = clients;
+      state.clients = clients; // También actualizar la lista principal
+    },
+    setAllClients: (state, action) => {
+      const clients = Array.isArray(action.payload) ? action.payload : [];
+      state.allClients = clients;
+      state.clients = clients; // También actualizar la lista principal
     }
   }
 });
@@ -59,7 +83,11 @@ export const {
   toggleStarredClient,
   setClients,
   setLoading,
-  setError
+  setError,
+  setActiveClients,
+  setInactiveClients,
+  setDeletedClients,
+  setAllClients
 } = ClientSlice.actions;
 
 export default ClientSlice.reducer;
