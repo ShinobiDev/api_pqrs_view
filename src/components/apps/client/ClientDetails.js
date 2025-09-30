@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 import { updateClient } from '../../../store/apps/clients/ClientSlice';
 import CreateUserModal from './CreateUserModal';
+import UsersClientList from './UsersClientList';
 
 const ClientDetails = ({ selectedClientId }) => {
   const dispatch = useDispatch();
@@ -14,6 +15,8 @@ const ClientDetails = ({ selectedClientId }) => {
   const [editedClient, setEditedClient] = useState(null);
   const [documentTypes, setDocumentTypes] = useState([]);
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
+  const [showUsersView, setShowUsersView] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const fetchDocumentTypes = async () => {
     try {
@@ -54,6 +57,7 @@ const ClientDetails = ({ selectedClientId }) => {
     const fetchClientDetails = async () => {
       if (!selectedClientId) {
         setClient(null);
+        setShowUsersView(false); // Resetear vista de usuarios cuando no hay cliente seleccionado
         setAlert({
           message: 'No se ha seleccionado ningún cliente',
           type: 'warning'
@@ -67,10 +71,12 @@ const ClientDetails = ({ selectedClientId }) => {
           type: 'danger'
         });
         setClient(null);
+        setShowUsersView(false); // Resetear vista de usuarios
         return;
       }
 
       setLoading(true);
+      setShowUsersView(false); // Resetear vista de usuarios cuando cambia el cliente
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -118,6 +124,7 @@ const ClientDetails = ({ selectedClientId }) => {
         
         setClient(processedClient);
         setEditedClient(processedClient);
+        setSelectedUserId(null); // Resetear usuario seleccionado
         setAlert({ message: null, type: null });
       } catch (err) {
         console.error('Error al cargar cliente:', err);
@@ -126,6 +133,7 @@ const ClientDetails = ({ selectedClientId }) => {
           type: 'danger'
         });
         setClient(null);
+        setShowUsersView(false); // Resetear vista de usuarios en caso de error
       } finally {
         setLoading(false);
       }
@@ -192,8 +200,17 @@ const ClientDetails = ({ selectedClientId }) => {
     }));
   };
 
+  const handleViewUsers = () => {
+    setShowUsersView(true);
+  };
+
+  const handleBackToClientDetails = () => {
+    setShowUsersView(false);
+    setSelectedUserId(null);
+  };
+
   return (
-    <div className="h-100 p-4">
+    <div className="h-100">
       {client && (
         <CreateUserModal
           isOpen={isCreateUserModalOpen}
@@ -203,22 +220,31 @@ const ClientDetails = ({ selectedClientId }) => {
         />
       )}
       
-      {alert.message && (
-        <Alert color={alert.type} className="mb-4">
-          {alert.message}
-        </Alert>
-      )}
-      
-      {loading ? (
-        <div className="text-center">
-          <Spinner color="primary" />
-        </div>
-      ) : !client ? (
-        <div className="text-center text-muted">
-          <i className="bi bi-person-circle" style={{ fontSize: '3rem' }}></i>
-          <p className="mt-2">Por favor, seleccione un cliente</p>
-        </div>
+      {showUsersView && client ? (
+        <UsersClientList
+          clientId={client.id}
+          onUserSelect={setSelectedUserId}
+          selectedUserId={selectedUserId}
+          onBack={handleBackToClientDetails}
+        />
       ) : (
+        <div className="p-4">
+          {alert.message && (
+            <Alert color={alert.type} className="mb-4">
+              {alert.message}
+            </Alert>
+          )}
+          
+          {loading ? (
+            <div className="text-center">
+              <Spinner color="primary" />
+            </div>
+          ) : !client ? (
+            <div className="text-center text-muted">
+              <i className="bi bi-person-circle" style={{ fontSize: '3rem' }}></i>
+              <p className="mt-2">Por favor, seleccione un cliente</p>
+            </div>
+          ) : (
         <div>
           <div className="d-flex align-items-center p-3 border-bottom">
             <div className="rounded-circle d-flex align-items-center justify-content-center"
@@ -289,12 +315,16 @@ const ClientDetails = ({ selectedClientId }) => {
                   <tr>
                     <td />
                     <td>
-                      <div className="d-flex gap-2">
+                      <div className="d-flex gap-2 flex-wrap">
                         <Button color="primary" onClick={() => setIsEditing(true)}>
                           Editar Cliente
                         </Button>
                         <Button color="success" onClick={() => setIsCreateUserModalOpen(true)} disabled={!client}>
                           Crear Nuevo Usuario
+                        </Button>
+                        <Button color="info" onClick={() => handleViewUsers()} disabled={!client}>
+                          <i className="bi bi-people me-1"></i>
+                          Ver Usuarios
                         </Button>
                       </div>
                     </td>
@@ -435,6 +465,8 @@ const ClientDetails = ({ selectedClientId }) => {
               </table>
             )}
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>

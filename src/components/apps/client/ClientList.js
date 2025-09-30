@@ -252,7 +252,7 @@ const ClientList = ({ onClientSelect, selectedClientId }) => {
           </div>
 
           <Nav className="contact-list" style={{ width: '100%' }}>
-            {clients
+            {(clients || [])
               .slice()
               .sort((a, b) => a.name.localeCompare(b.name))
               .filter(client => 
