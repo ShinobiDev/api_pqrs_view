@@ -3,16 +3,22 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ListGroup, ListGroupItem, Button, Modal, ModalHeader, Alert } from 'reactstrap';
 import * as ClientActions from '../../../store/apps/clients/ClientSlice';
 import ClientAdd from './ClientAdd';
+import ClientUpload from './ClientUpload';
 
 const ClientFilter = () => {
   const dispatch = useDispatch();
   const active = useSelector((state) => state.clientsReducer.currentFilter);
   const error = useSelector((state) => state.clientsReducer.error);
   const [modal, setModal] = React.useState(false);
+  const [uploadModal, setUploadModal] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   const toggle = () => {
     setModal(!modal);
+  };
+
+  const toggleUpload = () => {
+    setUploadModal(!uploadModal);
   };
 
   // Función para obtener clientes activos
@@ -227,6 +233,28 @@ const ClientFilter = () => {
     fetchAllClients();
   };
 
+  // Función para actualizar la vista después de una carga exitosa
+  const handleUploadSuccess = () => {
+    // Actualizar según el filtro activo actual
+    switch (active) {
+      case 'show_all':
+        fetchAllClients();
+        break;
+      case 'active_clients':
+        fetchActiveClients();
+        break;
+      case 'inactive_clients':
+        fetchInactiveClients();
+        break;
+      case 'deleted_clients':
+        fetchDeletedClients();
+        break;
+      default:
+        fetchAllClients();
+        break;
+    }
+  };
+
   // Función para exportar clientes a Excel
   const exportClientsToExcel = async () => {
     setLoading(true);
@@ -293,6 +321,16 @@ const ClientFilter = () => {
       <div className="p-3 border-bottom">
         <Button color="danger" block onClick={toggle} className="mb-2">
           Crear nuevo cliente
+        </Button>
+        <Button 
+          color="info" 
+          block 
+          onClick={toggleUpload}
+          disabled={loading}
+          className="mb-2 d-flex align-items-center justify-content-center"
+        >
+          <i className="bi bi-cloud-upload me-2"></i>
+          Cargar Clientes
         </Button>
         <Button 
           color="success" 
@@ -400,6 +438,14 @@ const ClientFilter = () => {
         <ClientAdd click={toggle} />
       </Modal>
       {/***********Client Add Box End**************/}
+
+      {/***********Client Upload Box**************/}
+      <ClientUpload 
+        isOpen={uploadModal} 
+        toggle={toggleUpload} 
+        onUploadSuccess={handleUploadSuccess}
+      />
+      {/***********Client Upload Box End**************/}
     </>
   );
 };
